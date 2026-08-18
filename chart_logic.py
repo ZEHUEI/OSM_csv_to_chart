@@ -248,34 +248,88 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
         current = df.at[category, col_current]
         target = df.at[category, col_target]
 
-        if existing_row in df.index:
-            existing = df.at[existing_row, col_previous]
-        else:
-            existing = np.nan
+        previous_existing = (
+            df.at[existing_row, col_previous]
+            if existing_row in df.index
+            else np.nan
+        )
 
-        if withdrawn_row in df.index:
-            withdrawn = df.at[withdrawn_row, col_previous]
-        else:
-            withdrawn = np.nan
+        previous_withdrawn = (
+            df.at[withdrawn_row, col_previous]
+            if withdrawn_row in df.index
+            else np.nan
+        )
 
-        if pd.isna(existing) and not pd.isna(withdrawn):
-            existing = max(previous - withdrawn, 0)
+        current_existing = (
+            df.at[existing_row, col_current]
+            if existing_row in df.index
+            else np.nan
+        )
 
-        elif pd.isna(withdrawn) and not pd.isna(existing):
-            withdrawn = max(previous - existing, 0)
+        current_withdrawn = (
+            df.at[withdrawn_row, col_current]
+            if withdrawn_row in df.index
+            else np.nan
+        )
 
-        elif pd.isna(existing) and pd.isna(withdrawn):
-            existing = previous
-            withdrawn = 0
+        target_existing = (
+            df.at[existing_row, col_target]
+            if existing_row in df.index
+            else np.nan
+        )
+
+        target_withdrawn = (
+            df.at[withdrawn_row, col_target]
+            if withdrawn_row in df.index
+            else np.nan
+        )
+
+        def fill_breakdown(total, existing, withdrawn):
+            if pd.isna(existing) and not pd.isna(withdrawn):
+                existing = max(total - withdrawn, 0)
+
+            elif pd.isna(withdrawn) and not pd.isna(existing):
+                withdrawn = max(total - existing, 0)
+
+            elif pd.isna(existing) and pd.isna(withdrawn):
+                existing = total
+                withdrawn = 0
+
+            return float(existing), float(withdrawn)
+
+        previous_existing, previous_withdrawn = fill_breakdown(
+            previous,
+            previous_existing,
+            previous_withdrawn,
+        )
+
+        current_existing, current_withdrawn = fill_breakdown(
+            current,
+            current_existing,
+            current_withdrawn,
+        )
+
+        target_existing, target_withdrawn = fill_breakdown(
+            target,
+            target_existing,
+            target_withdrawn,
+        )
 
         records.append(
             {
                 "category": category_name,
+
                 "previous": float(previous),
+                "previous_existing": previous_existing,
+                "previous_withdrawn": previous_withdrawn,
+
                 "current": float(current),
+                "current_existing": current_existing,
+                "current_withdrawn": current_withdrawn,
+
                 "target": float(target),
-                "existing": float(existing),
-                "withdrawn": float(withdrawn),
+                "target_existing": target_existing,
+                "target_withdrawn": target_withdrawn,
             }
         )
 
@@ -375,24 +429,43 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
         )
 
         category = record["category"]
+
         previous = record["previous"]
+        previous_existing = record["previous_existing"]
+        previous_withdrawn = record["previous_withdrawn"]
+
         current = record["current"]
+        current_existing = record["current_existing"]
+        current_withdrawn = record["current_withdrawn"]
+
         target = record["target"]
-        existing = record["existing"]
-        withdrawn = record["withdrawn"]
+        target_existing = record["target_existing"]
+        target_withdrawn = record["target_withdrawn"]
 
         # ====================================================
         # TARGET - RED
         # ====================================================
 
+        # TARGET EXISTING
         gradient_barh(
             ax,
             target_y,
-            target,
+            target_existing,
             normal_bar_height + overlap,
             0,
-            colours["target"][0],
-            colours["target"][1],
+            "#c40000",
+            "#ff1a1a",
+        )
+
+        # TARGET WITHDRAWN
+        gradient_barh(
+            ax,
+            target_y,
+            target_withdrawn,
+            normal_bar_height + overlap,
+            target_existing,
+            "#ff7777",
+            "#ffb3b3",
         )
 
         add_header_inside_bar(
@@ -408,14 +481,26 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
         # CURRENT - BLUE
         # ====================================================
 
+        # CURRENT EXISTING
         gradient_barh(
             ax,
             current_y,
-            current,
+            current_existing,
             normal_bar_height + overlap,
             0,
-            colours["current"][0],
-            colours["current"][1],
+            "#2877bd",
+            "#6db5eb",
+        )
+
+        # CURRENT WITHDRAWN
+        gradient_barh(
+            ax,
+            current_y,
+            current_withdrawn,
+            normal_bar_height + overlap,
+            current_existing,
+            "#9ed2f5",
+            "#d6edfc",
         )
 
         add_header_inside_bar(
@@ -434,7 +519,7 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
         gradient_barh(
             ax,
             previous_y,
-            existing,
+            previous_existing,
             previous_bar_height + overlap,
             0,
             colours["existing"][0],
@@ -444,9 +529,9 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
         gradient_barh(
             ax,
             previous_y,
-            withdrawn,
+            previous_withdrawn,
             previous_bar_height + overlap,
-            existing,
+            previous_existing,
             colours["withdrawn"][0],
             colours["withdrawn"][1],
         )
