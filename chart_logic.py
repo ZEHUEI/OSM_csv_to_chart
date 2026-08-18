@@ -143,6 +143,122 @@ def add_header_inside_bar(
         zorder=8,
         clip_on=True,
     )
+def add_breakdown_labels(
+    ax,
+    y,
+    total,
+    existing,
+    withdrawn,
+    maximum,
+    text_colour="black",
+):
+    """
+    Add Existing / Withdrawn labels for ONE specific bar.
+
+    Each bar uses its own values:
+    - Target
+    - Current Actual
+    - Previous Actual
+
+    If a section is too small, an arrow is used.
+    """
+
+    # ========================================================
+    # EXISTING
+    # ========================================================
+
+    if existing > 0:
+
+        existing_ratio = existing / maximum
+
+        if existing_ratio >= 0.20:
+
+            ax.text(
+                existing * 0.62,
+                y,
+                f"Existing Members\nRM{existing:,.0f}",
+                va="center",
+                ha="center",
+                fontsize=8,
+                fontweight="bold",
+                color=text_colour,
+                zorder=8,
+            )
+
+        else:
+
+            ax.annotate(
+                f"Existing Members\nRM{existing:,.0f}",
+                xy=(
+                    existing * 0.65,
+                    y,
+                ),
+                xytext=(
+                    existing + maximum * 0.08,
+                    y - 0.48,
+                ),
+                va="center",
+                ha="left",
+                fontsize=8,
+                fontweight="bold",
+                color="black",
+                arrowprops={
+                    "arrowstyle": "->",
+                    "linewidth": 1.2,
+                    "color": "#24667a",
+                },
+                zorder=9,
+            )
+
+    # ========================================================
+    # WITHDRAWN
+    # ========================================================
+
+    if withdrawn > 0:
+
+        withdrawn_ratio = withdrawn / maximum
+
+        if withdrawn_ratio >= 0.10:
+
+            ax.text(
+                existing + withdrawn / 2,
+                y,
+                f"Withdrawn Members\nRM{withdrawn:,.0f}",
+                va="center",
+                ha="center",
+                fontsize=8,
+                fontweight="bold",
+                color=text_colour,
+                zorder=8,
+            )
+
+        else:
+
+            ax.annotate(
+                f"Withdrawn Members\nRM{withdrawn:,.0f}",
+                xy=(
+                    existing + withdrawn / 2,
+                    y,
+                ),
+                xytext=(
+                    min(
+                        total + maximum * 0.07,
+                        maximum * 1.08,
+                    ),
+                    y + 0.48,
+                ),
+                va="center",
+                ha="left",
+                fontsize=8,
+                fontweight="bold",
+                color="black",
+                arrowprops={
+                    "arrowstyle": "->",
+                    "linewidth": 1.2,
+                    "color": "#24667a",
+                },
+                zorder=9,
+            )
 
 
 def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
@@ -545,227 +661,3 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
             maximum=maximum,
             colour="black",
         )
-
-        # ====================================================
-        # EXISTING MEMBERS
-        # ====================================================
-
-        existing_ratio = existing / maximum
-
-        if existing > 0:
-            if existing_ratio >= 0.20:
-                ax.text(
-                    existing * 0.62,
-                    previous_y,
-                    f"Existing Members\nRM{existing:,.0f}",
-                    va="center",
-                    ha="center",
-                    fontsize=8.5,
-                    fontweight="bold",
-                    color="black",
-                    zorder=8,
-                )
-            else:
-                ax.annotate(
-                    f"Existing Members\nRM{existing:,.0f}",
-                    xy=(
-                        existing * 0.65,
-                        previous_y,
-                    ),
-                    xytext=(
-                        existing + maximum * 0.08,
-                        previous_y - 0.55,
-                    ),
-                    va="center",
-                    ha="left",
-                    fontsize=8.5,
-                    fontweight="bold",
-                    arrowprops={
-                        "arrowstyle": "->",
-                        "linewidth": 1.2,
-                        "color": "#24667a",
-                    },
-                    zorder=9,
-                )
-
-        # ====================================================
-        # WITHDRAWN MEMBERS
-        # ====================================================
-
-        if withdrawn > 0:
-            withdrawn_ratio = withdrawn / maximum
-
-            if withdrawn_ratio >= 0.10:
-                ax.text(
-                    existing + withdrawn / 2,
-                    previous_y,
-                    f"Withdrawn Members\nRM{withdrawn:,.0f}",
-                    va="center",
-                    ha="center",
-                    fontsize=8,
-                    fontweight="bold",
-                    color="black",
-                    zorder=8,
-                )
-            else:
-                ax.annotate(
-                    f"Withdrawn Members\nRM{withdrawn:,.0f}",
-                    xy=(
-                        existing + withdrawn / 2,
-                        previous_y,
-                    ),
-                    xytext=(
-                        min(
-                            previous + maximum * 0.07,
-                            maximum * 1.08,
-                        ),
-                        previous_y + 0.48,
-                    ),
-                    va="center",
-                    ha="left",
-                    fontsize=8,
-                    fontweight="bold",
-                    arrowprops={
-                        "arrowstyle": "->",
-                        "linewidth": 1.2,
-                        "color": "#24667a",
-                    },
-                    zorder=9,
-                )
-
-        # ====================================================
-        # TOTAL VALUES AT BAR ENDS
-        # ====================================================
-
-        value_padding = maximum * 0.012
-
-        ax.text(
-            target + value_padding,
-            target_y,
-            f"{target:,.0f}",
-            va="center",
-            ha="left",
-            fontsize=10,
-            color="#444444",
-        )
-
-        ax.text(
-            current + value_padding,
-            current_y,
-            f"{current:,.0f}",
-            va="center",
-            ha="left",
-            fontsize=10,
-            color="#444444",
-        )
-
-        ax.text(
-            previous + value_padding,
-            previous_y,
-            f"{previous:,.0f}",
-            va="center",
-            ha="left",
-            fontsize=10,
-            color="#444444",
-        )
-
-        y_tick_positions.append(group_label_y)
-        y_tick_labels.append(category)
-
-    # ========================================================
-    # Y AXIS
-    # ========================================================
-
-    ax.set_yticks(y_tick_positions)
-    ax.set_yticklabels(
-        y_tick_labels,
-        fontsize=13,
-    )
-
-    ax.tick_params(
-        axis="y",
-        length=0,
-        pad=12,
-    )
-
-    ax.set_ylabel("")
-
-    # ========================================================
-    # TITLE
-    # ========================================================
-
-    ax.set_title(
-        chart_title,
-        fontsize=17,
-        fontweight="bold",
-        pad=20,
-    )
-
-    # ========================================================
-    # X AXIS
-    # ========================================================
-
-    ax.set_xlim(
-        -maximum * 0.015,
-        maximum * 1.18,
-    )
-
-    chart_bottom = (
-        (len(records) - 1) * group_gap
-        + stack_height
-    )
-
-    ax.set_ylim(
-        -0.30,
-        chart_bottom + 0.75,
-    )
-
-    ax.invert_yaxis()
-
-    ax.xaxis.set_major_formatter(
-        FuncFormatter(
-            lambda x, _:
-            f"{x:,.0f}"
-            if x >= 0
-            else ""
-        )
-    )
-
-    ax.xaxis.grid(
-        True,
-        linewidth=0.8,
-        alpha=0.35,
-    )
-
-    ax.set_axisbelow(True)
-
-    ax.set_xlabel(
-        "Membership value (RM)",
-        fontsize=11,
-    )
-
-    for spine in (
-        "top",
-        "right",
-        "left",
-    ):
-        ax.spines[spine].set_visible(False)
-
-    ax.spines["bottom"].set_alpha(0.35)
-
-    plt.tight_layout()
-
-    image_buffer = io.BytesIO()
-
-    fig.savefig(
-        image_buffer,
-        format="png",
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.close(fig)
-
-    image_buffer.seek(0)
-
-    return image_buffer
