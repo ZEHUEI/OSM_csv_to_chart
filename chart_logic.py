@@ -178,18 +178,20 @@ def create_chart_from_csv_bytes(csv_bytes: bytes) -> io.BytesIO:
     if not chart_title or chart_title.lower().startswith("unnamed:"):
         chart_title = "Membership"
 
+    metric_columns = list(df.columns[1:])
+
     col_previous = find_column(
-        list(df.columns),
+        metric_columns,
         ("2025h1", "actual"),
     )
 
     col_current = find_column(
-        list(df.columns),
+        metric_columns,
         ("2026h1", "actual"),
     )
 
     col_target = find_column(
-        list(df.columns),
+        metric_columns,
         ("2026h1", "target"),
     )
 
