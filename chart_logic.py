@@ -526,14 +526,14 @@ def add_breakdown_labels(
 
             # Push Existing Members slightly further right.
             existing_text_x = max(
-                existing * 0.62,
-                maximum * 0.23,
+                existing * 0.60,
+                maximum * 0.21,
             )
 
             # Do not move beyond the segment.
             existing_text_x = min(
                 existing_text_x,
-                existing * 0.88,
+                existing * 0.86,
             )
 
             ax.text(
@@ -567,11 +567,11 @@ def add_breakdown_labels(
                 vertical_offset = (
                     -0.58
                     if arrow_direction == "up"
-                    else 0.55
+                    else 0.45
                 )
 
                 x_offset = (
-                    maximum * 0.055
+                    maximum * 0.045
                 )
 
             else:
@@ -680,11 +680,11 @@ def add_breakdown_labels(
                     withdrawn_vertical_offset = (
                         -1.00
                         if arrow_direction == "up"
-                        else 1.05
+                        else 1.20
                     )
 
                     withdrawn_x_extra = (
-                        maximum * 0.11
+                        maximum * 0.14
                     )
 
                 # --------------------------------------------
@@ -698,23 +698,23 @@ def add_breakdown_labels(
                     withdrawn_vertical_offset = (
                         -0.62
                         if arrow_direction == "up"
-                        else 0.62
+                        else 0.78
                     )
 
                     withdrawn_x_extra = (
-                        maximum * 0.075
+                        maximum * 0.14
                     )
 
             else:
 
                 withdrawn_vertical_offset = (
-                    -0.72
+                    -0.62
                     if arrow_direction == "up"
-                    else 0.72
+                    else 0.78
                 )
 
                 withdrawn_x_extra = (
-                    maximum * 0.08
+                    maximum * 0.10
                 )
 
             ax.annotate(
