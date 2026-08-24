@@ -611,10 +611,10 @@ def add_breakdown_labels(
             # ================================================
             elif series_type == "current":
 
-                arrow_x = existing * 1.20
+                arrow_x = existing * 0.80
                 text_x = min(
-                    existing + maximum * 0.10,
-                    maximum * 1.25,
+                    existing + maximum * 0.15,
+                    maximum * 1.05,
                 )
                 text_y = y
                 text_alignment = "left"
