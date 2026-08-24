@@ -438,7 +438,7 @@ def add_header_inside_bar(
     y,
     bar_width,
     maximum,
-    colour="white",
+    colour="black",
 ):
     """
     Keep main period headers inside the bar.
@@ -570,9 +570,7 @@ def add_breakdown_labels(
                     else 0.45
                 )
 
-                x_offset = (
-                    maximum * 0.045
-                )
+                x_offset = 0
 
             else:
 
@@ -1380,7 +1378,7 @@ def create_chart_from_csv_bytes(
             y=target_y,
             bar_width=target,
             maximum=maximum,
-            colour="white",
+            colour="black",
         )
 
         add_breakdown_labels(
@@ -1390,7 +1388,7 @@ def create_chart_from_csv_bytes(
             existing=target_existing,
             withdrawn=target_withdrawn,
             maximum=maximum,
-            text_colour="white",
+            text_colour="black",
             arrow_direction="up",
         )
 
@@ -1446,7 +1444,7 @@ def create_chart_from_csv_bytes(
             y=current_y,
             bar_width=current,
             maximum=maximum,
-            colour="white",
+            colour="black",
         )
 
         add_breakdown_labels(
@@ -1456,7 +1454,7 @@ def create_chart_from_csv_bytes(
             existing=current_existing,
             withdrawn=current_withdrawn,
             maximum=maximum,
-            text_colour="white",
+            text_colour="black",
             arrow_direction="down",
         )
 
