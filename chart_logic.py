@@ -557,7 +557,7 @@ def add_breakdown_labels(
             existing / maximum
         )
 
-        if existing_ratio >= 0.20:
+        if existing_ratio >= 0.40:
 
             # Leave space on the left for the period header.
             existing_text_x = max(
@@ -578,7 +578,7 @@ def add_breakdown_labels(
                 f"RM{existing:,.0f}",
                 va="center",
                 ha="center",
-                fontsize=10,
+                fontsize=9,
                 fontweight="bold",
                 color=text_colour,
                 zorder=8,
@@ -613,7 +613,7 @@ def add_breakdown_labels(
                 va="center",
                 ha="left",
 
-                fontsize=10,
+                fontsize=9,
                 fontweight="bold",
                 color="black",
 
@@ -646,7 +646,7 @@ def add_breakdown_labels(
                 f"RM{withdrawn:,.0f}",
                 va="center",
                 ha="center",
-                fontsize=10,
+                fontsize=9,
                 fontweight="bold",
                 color=text_colour,
                 zorder=8,
@@ -682,7 +682,7 @@ def add_breakdown_labels(
                 va="center",
                 ha="left",
 
-                fontsize=10,
+                fontsize=9,
                 fontweight="bold",
                 color="black",
 
@@ -1532,7 +1532,8 @@ def create_chart_from_csv_bytes(
             f"{target:,.0f}",
             va="center",
             ha="left",
-            fontsize=10,
+            fontsize=12,
+            fontweight="bold",
             color="#444444",
         )
 
@@ -1543,7 +1544,8 @@ def create_chart_from_csv_bytes(
             f"{current:,.0f}",
             va="center",
             ha="left",
-            fontsize=10,
+            fontsize=12,
+            fontweight="bold",
             color="#444444",
         )
 
@@ -1554,7 +1556,8 @@ def create_chart_from_csv_bytes(
             f"{previous:,.0f}",
             va="center",
             ha="left",
-            fontsize=10,
+            fontsize=12,
+            fontweight="bold",
             color="#444444",
         )
 
