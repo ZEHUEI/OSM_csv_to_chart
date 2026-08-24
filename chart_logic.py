@@ -555,7 +555,7 @@ def add_breakdown_labels(
                     and "yt direct acc only" in category_lower
             ):
                 existing_text_x = (
-                        existing * 0.55
+                        existing * 0.62
                 )
 
             # Do not move outside Existing segment.
