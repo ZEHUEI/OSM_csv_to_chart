@@ -205,7 +205,7 @@ def find_helper_row(
             return index_value
 
     # --------------------------------------------------------
-    # Fall back to:
+    # Fall back to short helper names.
     #
     # Overall -> O E / O W
     # Publishing -> P E / P W
@@ -507,6 +507,11 @@ def add_breakdown_labels(
         label moves outside with an arrow.
     """
 
+    category_lower = (
+        str(category_name)
+        .lower()
+    )
+
     # ========================================================
     # EXISTING
     # ========================================================
@@ -518,47 +523,52 @@ def add_breakdown_labels(
         )
 
         # ----------------------------------------------------
-        # Keep inside when segment is >= 29%.
-        #
-        # This keeps the bottom blue bar's Existing label
-        # inside as well.
+        # Existing large enough -> keep label inside.
         # ----------------------------------------------------
 
         if existing_ratio >= 0.29:
 
-            # Push Existing Members slightly further right.
+            # Default Existing label position.
             existing_text_x = max(
                 existing * 0.64,
                 maximum * 0.24,
             )
 
-            category_lower = category_name.lower()
-
-            # ----------------------------------------------------
+            # ------------------------------------------------
             # Revenue (OSM Only) - GREEN
-            # Move Existing Members slightly RIGHT.
-            # ----------------------------------------------------
+            #
+            # Move Existing Members further RIGHT.
+            # ------------------------------------------------
+
             if (
-                    series_type == "previous"
-                    and "osm only" in category_lower
+                series_type == "previous"
+                and "osm only" in category_lower
             ):
+
                 existing_text_x = (
-                        existing * 0.73
+                    existing * 0.73
                 )
 
-            # ----------------------------------------------------
+            # ------------------------------------------------
             # Revenue (YT Direct Acc Only) - BLUE
-            # Move Existing Members LEFT.
-            # ----------------------------------------------------
+            #
+            # Move Existing Members further RIGHT.
+            # ------------------------------------------------
+
             elif (
-                    series_type == "current"
-                    and "yt direct acc only" in category_lower
+                series_type == "current"
+                and "yt direct acc only"
+                in category_lower
             ):
+
                 existing_text_x = (
-                        existing * 0.62
+                    existing * 0.78
                 )
 
-            # Do not move outside Existing segment.
+            # ------------------------------------------------
+            # Keep text inside Existing segment.
+            # ------------------------------------------------
+
             existing_text_x = min(
                 existing_text_x,
                 existing * 0.88,
@@ -583,24 +593,46 @@ def add_breakdown_labels(
 
         else:
 
-            # Green bars use black text_colour.
+            # Correctly identify green bars using series type.
             is_green_bar = (
-                text_colour == "black"
+                series_type == "previous"
             )
 
             if is_green_bar:
 
-                # Green Existing:
-                # slightly lower and slightly to the right.
+                # --------------------------------------------
+                # GREEN EXISTING
+                #
+                # Keep arrow perfectly vertical:
+                #
+                # Arrow X:
+                # existing * 0.65
+                #
+                # Text X:
+                # existing + x_offset
+                #
+                # x_offset = -0.35 * existing
+                #
+                # Therefore:
+                # existing - 0.35 existing
+                # = existing * 0.65
+                # --------------------------------------------
+
                 vertical_offset = (
                     -0.58
                     if arrow_direction == "up"
                     else 0.65
                 )
 
-                x_offset = -(existing * 0.35)
+                x_offset = (
+                    -(existing * 0.35)
+                )
 
             else:
+
+                # --------------------------------------------
+                # Red / blue small Existing labels.
+                # --------------------------------------------
 
                 vertical_offset = (
                     -0.48
@@ -616,7 +648,7 @@ def add_breakdown_labels(
                 f"Existing Members\n"
                 f"RM{existing:,.0f}",
 
-                # Arrow begins from the Existing segment.
+                # Arrow begins inside Existing segment.
                 xy=(
                     existing * 0.65,
                     y,
@@ -629,7 +661,8 @@ def add_breakdown_labels(
                         + x_offset,
                         maximum * 1.05,
                     ),
-                    y + vertical_offset,
+                    y
+                    + vertical_offset,
                 ),
 
                 va="center",
@@ -640,7 +673,6 @@ def add_breakdown_labels(
                 color="black",
 
                 arrowprops={
-                    # Arrow points outward toward label.
                     "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
@@ -680,13 +712,14 @@ def add_breakdown_labels(
             )
 
         # ----------------------------------------------------
-        # Small Withdrawn section goes outside.
+        # Small Withdrawn section -> arrow outside.
         # ----------------------------------------------------
 
         else:
 
+            # Correctly identify green bars.
             is_green_bar = (
-                text_colour == "black"
+                series_type == "previous"
             )
 
             existing_ratio = (
@@ -697,8 +730,7 @@ def add_breakdown_labels(
 
                 # --------------------------------------------
                 # If Existing is ALSO outside,
-                # separate the two green labels more.
-                # This mainly affects the final green bar.
+                # separate the two labels more.
                 # --------------------------------------------
 
                 if existing_ratio < 0.29:
@@ -714,9 +746,8 @@ def add_breakdown_labels(
                     )
 
                 # --------------------------------------------
-                # Existing is inside but Withdrawn is outside.
-                # Example: middle green bar.
-                # Keep label within the white gap.
+                # Existing stays inside but Withdrawn is
+                # outside.
                 # --------------------------------------------
 
                 else:
@@ -733,6 +764,10 @@ def add_breakdown_labels(
 
             else:
 
+                # --------------------------------------------
+                # Red / blue Withdrawn labels.
+                # --------------------------------------------
+
                 withdrawn_vertical_offset = (
                     -0.62
                     if arrow_direction == "up"
@@ -747,7 +782,8 @@ def add_breakdown_labels(
                 f"Withdrawn Members\n"
                 f"RM{withdrawn:,.0f}",
 
-                # Arrow starts from middle of light segment.
+                # Arrow starts from middle
+                # of Withdrawn segment.
                 xy=(
                     existing
                     + withdrawn / 2,
@@ -773,7 +809,6 @@ def add_breakdown_labels(
                 color="black",
 
                 arrowprops={
-                    # Arrowhead points outward.
                     "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
@@ -1124,28 +1159,28 @@ def create_chart_from_csv_bytes(
                 "category": category_name,
 
                 "previous": previous,
-                "previous_existing": (
-                    previous_existing
-                ),
-                "previous_withdrawn": (
-                    previous_withdrawn
-                ),
+
+                "previous_existing":
+                    previous_existing,
+
+                "previous_withdrawn":
+                    previous_withdrawn,
 
                 "current": current,
-                "current_existing": (
-                    current_existing
-                ),
-                "current_withdrawn": (
-                    current_withdrawn
-                ),
+
+                "current_existing":
+                    current_existing,
+
+                "current_withdrawn":
+                    current_withdrawn,
 
                 "target": target,
-                "target_existing": (
-                    target_existing
-                ),
-                "target_withdrawn": (
-                    target_withdrawn
-                ),
+
+                "target_existing":
+                    target_existing,
+
+                "target_withdrawn":
+                    target_withdrawn,
             }
         )
 
@@ -1672,8 +1707,8 @@ def create_chart_from_csv_bytes(
         + stack_height
     )
 
-    # Extra room is added at the bottom because
-    # the last green labels may sit below the bar.
+    # Extra room because the final labels
+    # can appear beneath the last green bar.
     ax.set_ylim(
         -0.45,
         chart_bottom + 1.45,
