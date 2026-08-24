@@ -40,7 +40,11 @@ def clean_number(value: object) -> float:
     if not text:
         return np.nan
 
-    text = re.sub(r"[^0-9.\-]", "", text)
+    text = re.sub(
+        r"[^0-9.\-]",
+        "",
+        text,
+    )
 
     try:
         return float(text)
@@ -89,16 +93,6 @@ def find_column(
 def normalise_row_name(value: object) -> str:
     """
     Normalise helper-row names for safer matching.
-
-    Example:
-
-    Revenue (OSM Only) - Existing Member
-
-    and
-
-    Revenue (OSM Only)-Existing Member
-
-    become effectively equivalent.
     """
 
     text = str(value).strip().lower()
@@ -125,20 +119,6 @@ def normalise_row_name(value: object) -> str:
 def is_helper_row(row_name: object) -> bool:
     """
     Detect rows that should NOT become chart categories.
-
-    Supports:
-
-    O E
-    O W
-    P E
-    P W
-    L E
-    L W
-
-    and:
-
-    Category-Existing Member
-    Category-Withdrawn Member
     """
 
     text = str(row_name).strip()
@@ -156,12 +136,18 @@ def is_helper_row(row_name: object) -> bool:
     ):
         return True
 
-    normalised = normalise_row_name(text)
+    normalised = normalise_row_name(
+        text
+    )
 
-    if normalised.endswith("-existing member"):
+    if normalised.endswith(
+        "-existing member"
+    ):
         return True
 
-    if normalised.endswith("-withdrawn member"):
+    if normalised.endswith(
+        "-withdrawn member"
+    ):
         return True
 
     return False
@@ -178,15 +164,6 @@ def find_helper_row(
 ) -> object | None:
     """
     Locate the Existing or Withdrawn row for a category.
-
-    First tries the long explicit format:
-
-        Revenue (OSM Only)-Existing Member
-
-    Then falls back to the old short format:
-
-        O E
-        O W
     """
 
     if helper_type not in {
@@ -207,18 +184,22 @@ def find_helper_row(
         f"{category_name}-{suffix}"
     )
 
-    normalised_candidate = normalise_row_name(
-        long_candidate
+    normalised_candidate = (
+        normalise_row_name(
+            long_candidate
+        )
     )
 
     # --------------------------------------------------------
-    # First try explicit long names.
+    # Try explicit long names.
     # --------------------------------------------------------
 
     for index_value in index_values:
 
         if (
-            normalise_row_name(index_value)
+            normalise_row_name(
+                index_value
+            )
             == normalised_candidate
         ):
             return index_value
@@ -274,21 +255,6 @@ def fill_breakdown(
 ) -> tuple[float, float]:
     """
     Return a valid Existing / Withdrawn breakdown.
-
-    Rules:
-
-    1. If both are missing:
-       Existing = total
-       Withdrawn = 0
-
-    2. If only one exists:
-       calculate the other from the total.
-
-    3. If both exist but Existing + Withdrawn does NOT
-       approximately equal the total, ignore the invalid
-       breakdown and draw the full bar as Existing.
-
-    This prevents tiny / malformed / apparently corrupted bars.
     """
 
     total = float(total)
@@ -309,7 +275,9 @@ def fill_breakdown(
 
     if pd.isna(existing):
 
-        withdrawn = float(withdrawn)
+        withdrawn = float(
+            withdrawn
+        )
 
         existing = max(
             total - withdrawn,
@@ -322,7 +290,9 @@ def fill_breakdown(
 
     elif pd.isna(withdrawn):
 
-        existing = float(existing)
+        existing = float(
+            existing
+        )
 
         withdrawn = max(
             total - existing,
@@ -335,10 +305,16 @@ def fill_breakdown(
 
     else:
 
-        existing = float(existing)
-        withdrawn = float(withdrawn)
+        existing = float(
+            existing
+        )
+
+        withdrawn = float(
+            withdrawn
+        )
 
     # Prevent negative values.
+
     existing = max(
         existing,
         0,
@@ -353,12 +329,6 @@ def fill_breakdown(
         existing + withdrawn
     )
 
-    # --------------------------------------------------------
-    # Check that breakdown matches total.
-    #
-    # 0.1% tolerance or at least RM1.
-    # --------------------------------------------------------
-
     tolerance = max(
         abs(total) * 0.001,
         1.0,
@@ -370,10 +340,6 @@ def fill_breakdown(
         )
         > tolerance
     ):
-        # Invalid breakdown.
-        #
-        # Keep the official total bar length rather than
-        # drawing a broken partial bar.
         return total, 0.0
 
     return (
@@ -476,14 +442,6 @@ def add_header_inside_bar(
 ):
     """
     Keep main period headers inside the bar.
-
-    Examples:
-
-    2026H1 (Target)
-    2026H1 (Actual)
-    2025H1 (ACTUAL)
-
-    These NEVER use arrows.
     """
 
     ratio = (
@@ -540,16 +498,16 @@ def add_breakdown_labels(
     """
     Show Existing / Withdrawn labels.
 
-    If the segment is large enough:
-        label goes inside.
+    Large segment:
+        label stays inside.
 
-    If the segment is too small:
-        label goes outside with an arrow.
+    Small segment:
+        label moves outside with an arrow.
     """
 
-    # --------------------------------------------------------
+    # ========================================================
     # EXISTING
-    # --------------------------------------------------------
+    # ========================================================
 
     if existing > 0:
 
@@ -557,18 +515,25 @@ def add_breakdown_labels(
             existing / maximum
         )
 
-        if existing_ratio >= 0.30:
+        # ----------------------------------------------------
+        # Keep inside when segment is >= 29%.
+        #
+        # This keeps the bottom blue bar's Existing label
+        # inside as well.
+        # ----------------------------------------------------
 
-            # Leave space on the left for the period header.
+        if existing_ratio >= 0.29:
+
+            # Push Existing Members slightly further right.
             existing_text_x = max(
-                existing * 0.62,
-                maximum * 0.23,
+                existing * 0.68,
+                maximum * 0.26,
             )
 
-            # Do not push beyond the segment.
+            # Do not move beyond the segment.
             existing_text_x = min(
                 existing_text_x,
-                existing * 0.88,
+                existing * 0.90,
             )
 
             ax.text(
@@ -584,28 +549,59 @@ def add_breakdown_labels(
                 zorder=8,
             )
 
+        # ----------------------------------------------------
+        # Existing too small -> arrow outside.
+        # ----------------------------------------------------
+
         else:
 
-            vertical_offset = (
-                -0.48
-                if arrow_direction == "up"
-                else 0.48
+            # Green bars use black text_colour.
+            is_green_bar = (
+                text_colour == "black"
             )
+
+            if is_green_bar:
+
+                # Green Existing:
+                # slightly lower and slightly to the right.
+                vertical_offset = (
+                    -0.58
+                    if arrow_direction == "up"
+                    else 0.55
+                )
+
+                x_offset = (
+                    maximum * 0.055
+                )
+
+            else:
+
+                vertical_offset = (
+                    -0.48
+                    if arrow_direction == "up"
+                    else 0.48
+                )
+
+                x_offset = (
+                    maximum * 0.08
+                )
 
             ax.annotate(
                 f"Existing Members\n"
                 f"RM{existing:,.0f}",
 
+                # Arrow begins from the Existing segment.
                 xy=(
                     existing * 0.65,
                     y,
                 ),
 
+                # Text position.
                 xytext=(
                     min(
                         existing
-                        + maximum * 0.08,
-                        maximum * 1.06,
+                        + x_offset,
+                        maximum * 1.05,
                     ),
                     y + vertical_offset,
                 ),
@@ -618,7 +614,8 @@ def add_breakdown_labels(
                 color="black",
 
                 arrowprops={
-                    "arrowstyle": "->",
+                    # Arrow points outward toward label.
+                    "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
                 },
@@ -626,21 +623,20 @@ def add_breakdown_labels(
                 zorder=9,
             )
 
-    # --------------------------------------------------------
+    # ========================================================
     # WITHDRAWN
-    # --------------------------------------------------------
+    # ========================================================
 
     if withdrawn > 0:
 
         withdrawn_ratio = (
-                withdrawn / maximum
+            withdrawn / maximum
         )
 
-        # Only keep withdrawn text inside when the segment
-        # is comfortably large.
-        #
-        # 0.13 keeps the large Overall green segment inside,
-        # while smaller OSM / Direct Acc segments go outside.
+        # ----------------------------------------------------
+        # Large Withdrawn section stays inside.
+        # ----------------------------------------------------
+
         if withdrawn_ratio >= 0.20:
 
             ax.text(
@@ -657,35 +653,90 @@ def add_breakdown_labels(
                 zorder=8,
             )
 
+        # ----------------------------------------------------
+        # Small Withdrawn section goes outside.
+        # ----------------------------------------------------
+
         else:
 
-            # Put withdrawn further away from the bar
-            # so it does not overlap Existing.
-            withdrawn_vertical_offset = (
-                -0.78
-                if arrow_direction == "up"
-                else 0.78
+            is_green_bar = (
+                text_colour == "black"
             )
+
+            existing_ratio = (
+                existing / maximum
+            )
+
+            if is_green_bar:
+
+                # --------------------------------------------
+                # If Existing is ALSO outside,
+                # separate the two green labels more.
+                # This mainly affects the final green bar.
+                # --------------------------------------------
+
+                if existing_ratio < 0.29:
+
+                    withdrawn_vertical_offset = (
+                        -1.00
+                        if arrow_direction == "up"
+                        else 1.05
+                    )
+
+                    withdrawn_x_extra = (
+                        maximum * 0.11
+                    )
+
+                # --------------------------------------------
+                # Existing is inside but Withdrawn is outside.
+                # Example: middle green bar.
+                # Keep label within the white gap.
+                # --------------------------------------------
+
+                else:
+
+                    withdrawn_vertical_offset = (
+                        -0.62
+                        if arrow_direction == "up"
+                        else 0.62
+                    )
+
+                    withdrawn_x_extra = (
+                        maximum * 0.075
+                    )
+
+            else:
+
+                withdrawn_vertical_offset = (
+                    -0.72
+                    if arrow_direction == "up"
+                    else 0.72
+                )
+
+                withdrawn_x_extra = (
+                    maximum * 0.08
+                )
 
             ax.annotate(
                 f"Withdrawn Members\n"
                 f"RM{withdrawn:,.0f}",
 
-                # Arrow starts from middle of light segment
+                # Arrow starts from middle of light segment.
                 xy=(
                     existing
                     + withdrawn / 2,
                     y,
                 ),
 
-                # Text outside and to the right
+                # Text sits outside/right.
                 xytext=(
                     min(
                         total
-                        + maximum * 0.08,
-                        maximum * 1.10,
+                        + withdrawn_x_extra,
+                        maximum * 1.12,
                     ),
-                    y + withdrawn_vertical_offset,
+                    y
+                    + withdrawn_vertical_offset,
                 ),
 
                 va="center",
@@ -696,7 +747,7 @@ def add_breakdown_labels(
                 color="black",
 
                 arrowprops={
-                    # Arrowhead points OUT toward the label
+                    # Arrowhead points outward.
                     "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
@@ -760,10 +811,6 @@ def create_chart_from_csv_bytes(
 
     # ========================================================
     # COLUMN 1
-    #
-    # Header = chart title
-    #
-    # Values = category/helper names
     # ========================================================
 
     label_column = (
@@ -786,17 +833,7 @@ def create_chart_from_csv_bytes(
         )
 
     # ========================================================
-    # IMPORTANT:
-    #
-    # Only search Column 2 onwards for metric headers.
-    #
-    # This means a long chart title can contain phrases such as:
-    #
-    # 2025H1 Actual
-    # 2026H1 Actual
-    # 2026H1 Target
-    #
-    # without confusing find_column().
+    # FIND METRIC COLUMNS
     # ========================================================
 
     metric_columns = list(
@@ -860,14 +897,14 @@ def create_chart_from_csv_bytes(
 
     # ========================================================
     # FIND MAIN CATEGORIES
-    #
-    # Helper rows must NEVER become categories,
-    # even if they contain values in all 3 columns.
     # ========================================================
 
     categories = []
 
-    for index_value, row in df.iterrows():
+    for (
+        index_value,
+        row,
+    ) in df.iterrows():
 
         if is_helper_row(
             index_value
@@ -898,20 +935,6 @@ def create_chart_from_csv_bytes(
             "2025 Actual, 2026 Actual and 2026 Target."
         )
 
-    # Preserve your existing chart order.
-    #
-    # Example:
-    #
-    # CSV:
-    # Label
-    # Publishing
-    # Overall
-    #
-    # Chart:
-    # Overall
-    # Publishing
-    # Label
-
     categories = (
         categories[::-1]
     )
@@ -931,10 +954,6 @@ def create_chart_from_csv_bytes(
 
         if not category_name:
             continue
-
-        # ----------------------------------------------------
-        # Find helper rows.
-        # ----------------------------------------------------
 
         existing_row = (
             find_helper_row(
@@ -1044,7 +1063,7 @@ def create_chart_from_csv_bytes(
         )
 
         # ====================================================
-        # VALIDATE EACH BAR INDEPENDENTLY
+        # VALIDATE BREAKDOWNS
         # ====================================================
 
         (
@@ -1079,16 +1098,28 @@ def create_chart_from_csv_bytes(
                 "category": category_name,
 
                 "previous": previous,
-                "previous_existing": previous_existing,
-                "previous_withdrawn": previous_withdrawn,
+                "previous_existing": (
+                    previous_existing
+                ),
+                "previous_withdrawn": (
+                    previous_withdrawn
+                ),
 
                 "current": current,
-                "current_existing": current_existing,
-                "current_withdrawn": current_withdrawn,
+                "current_existing": (
+                    current_existing
+                ),
+                "current_withdrawn": (
+                    current_withdrawn
+                ),
 
                 "target": target,
-                "target_existing": target_existing,
-                "target_withdrawn": target_withdrawn,
+                "target_existing": (
+                    target_existing
+                ),
+                "target_withdrawn": (
+                    target_withdrawn
+                ),
             }
         )
 
@@ -1146,19 +1177,12 @@ def create_chart_from_csv_bytes(
         0.50
     )
 
-    # Total vertical space occupied by:
-    #
-    # RED
-    # BLUE
-    # GREEN
-
     stack_height = (
         normal_bar_height
         + normal_bar_height
         + previous_bar_height
     )
 
-    # White gap ONLY after the green bar.
     white_gap_after_group = (
         0.72
     )
@@ -1167,9 +1191,6 @@ def create_chart_from_csv_bytes(
         stack_height
         + white_gap_after_group
     )
-
-    # Tiny overlap removes anti-aliasing hairlines
-    # between red / blue / green.
 
     overlap = (
         0.014
@@ -1181,37 +1202,31 @@ def create_chart_from_csv_bytes(
 
     colours = {
 
-        # Target Existing
         "target_existing": (
             "#c40000",
             "#ff1a1a",
         ),
 
-        # Target Withdrawn
         "target_withdrawn": (
             "#ff7777",
             "#ffb3b3",
         ),
 
-        # 2026 Actual Existing
         "current_existing": (
             "#2877bd",
             "#6db5eb",
         ),
 
-        # 2026 Actual Withdrawn
         "current_withdrawn": (
             "#9ed2f5",
             "#d6edfc",
         ),
 
-        # 2025 Actual Existing
         "previous_existing": (
             "#11b711",
             "#11b711",
         ),
 
-        # 2025 Actual Withdrawn
         "previous_withdrawn": (
             "#74e574",
             "#b4ffb4",
@@ -1234,16 +1249,6 @@ def create_chart_from_csv_bytes(
             group_number
             * group_gap
         )
-
-        # ----------------------------------------------------
-        # Exact touching positions:
-        #
-        # RED
-        # BLUE
-        # GREEN
-        #
-        # no white line between.
-        # ----------------------------------------------------
 
         target_y = (
             group_top
@@ -1369,7 +1374,6 @@ def create_chart_from_csv_bytes(
             ),
         )
 
-        # Target header always inside.
         add_header_inside_bar(
             ax=ax,
             text=col_target,
@@ -1379,7 +1383,6 @@ def create_chart_from_csv_bytes(
             colour="white",
         )
 
-        # Independent target breakdown.
         add_breakdown_labels(
             ax=ax,
             y=target_y,
@@ -1437,7 +1440,6 @@ def create_chart_from_csv_bytes(
             ),
         )
 
-        # 2026 Actual header always inside.
         add_header_inside_bar(
             ax=ax,
             text=col_current,
@@ -1447,7 +1449,6 @@ def create_chart_from_csv_bytes(
             colour="white",
         )
 
-        # Independent 2026 Actual breakdown.
         add_breakdown_labels(
             ax=ax,
             y=current_y,
@@ -1505,7 +1506,6 @@ def create_chart_from_csv_bytes(
             ),
         )
 
-        # 2025 Actual header always inside.
         add_header_inside_bar(
             ax=ax,
             text=col_previous,
@@ -1515,7 +1515,6 @@ def create_chart_from_csv_bytes(
             colour="black",
         )
 
-        # Independent 2025 Actual breakdown.
         add_breakdown_labels(
             ax=ax,
             y=previous_y,
@@ -1528,7 +1527,7 @@ def create_chart_from_csv_bytes(
         )
 
         # ====================================================
-        # TOTAL VALUES AT END
+        # TOTAL VALUES
         # ====================================================
 
         value_padding = (
@@ -1602,7 +1601,9 @@ def create_chart_from_csv_bytes(
         pad=12,
     )
 
-    ax.set_ylabel("")
+    ax.set_ylabel(
+        ""
+    )
 
     # ========================================================
     # TITLE
@@ -1639,9 +1640,11 @@ def create_chart_from_csv_bytes(
         + stack_height
     )
 
+    # Extra room is added at the bottom because
+    # the last green labels may sit below the bar.
     ax.set_ylim(
         -0.45,
-        chart_bottom + 0.90,
+        chart_bottom + 1.45,
     )
 
     ax.invert_yaxis()
