@@ -593,80 +593,58 @@ def add_breakdown_labels(
 
         else:
 
-            # Correctly identify green bars using series type.
-            is_green_bar = (
-                series_type == "previous"
-            )
+            # ================================================
+            # RED small Existing -> keep above
+            # ================================================
+            if series_type == "target":
 
-            if is_green_bar:
-
-                # --------------------------------------------
-                # GREEN EXISTING
-                #
-                # Keep arrow perfectly vertical:
-                #
-                # Arrow X:
-                # existing * 0.65
-                #
-                # Text X:
-                # existing + x_offset
-                #
-                # x_offset = -0.35 * existing
-                #
-                # Therefore:
-                # existing - 0.35 existing
-                # = existing * 0.65
-                # --------------------------------------------
-
-                vertical_offset = (
-                    -0.58
-                    if arrow_direction == "up"
-                    else 0.65
+                arrow_x = existing * 0.65
+                text_x = min(
+                    existing + maximum * 0.08,
+                    maximum * 1.05,
                 )
+                text_y = y - 0.48
+                text_alignment = "left"
 
-                x_offset = (
-                    -(existing * 0.35)
+            # ================================================
+            # BLUE small Existing -> horizontal outward
+            # ================================================
+            elif series_type == "current":
+
+                arrow_x = existing * 0.65
+                text_x = min(
+                    existing + maximum * 0.08,
+                    maximum * 1.05,
                 )
+                text_y = y
+                text_alignment = "left"
 
+            # ================================================
+            # GREEN small Existing -> vertical downward
+            # ================================================
             else:
 
-                # --------------------------------------------
-                # Red / blue small Existing labels.
-                # --------------------------------------------
-
-                vertical_offset = (
-                    -0.48
-                    if arrow_direction == "up"
-                    else 0.48
-                )
-
-                x_offset = (
-                    maximum * 0.08
-                )
+                arrow_x = existing * 0.65
+                text_x = existing * 0.65
+                text_y = y + 0.65
+                text_alignment = "center"
 
             ax.annotate(
                 f"Existing Members\n"
                 f"RM{existing:,.0f}",
 
-                # Arrow begins inside Existing segment.
                 xy=(
-                    existing * 0.65,
+                    arrow_x,
                     y,
                 ),
 
-                # Text position.
                 xytext=(
-                    min(
-                        existing
-                        + x_offset,
-                        maximum * 1.05,
-                    ),
-                    y
-                    + vertical_offset,
+                    text_x,
+                    text_y,
                 ),
 
                 va="center",
-                ha="center",
+                ha=text_alignment,
 
                 fontsize=9,
                 fontweight="bold",
@@ -742,7 +720,7 @@ def add_breakdown_labels(
                     )
 
                     withdrawn_x_extra = (
-                        maximum * 0.14
+                        maximum * 0.10
                     )
 
                 # --------------------------------------------
