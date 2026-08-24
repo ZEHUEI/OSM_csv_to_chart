@@ -578,7 +578,7 @@ def add_breakdown_labels(
                 f"RM{existing:,.0f}",
                 va="center",
                 ha="center",
-                fontsize=8,
+                fontsize=10,
                 fontweight="bold",
                 color=text_colour,
                 zorder=8,
@@ -613,7 +613,7 @@ def add_breakdown_labels(
                 va="center",
                 ha="left",
 
-                fontsize=8,
+                fontsize=10,
                 fontweight="bold",
                 color="black",
 
@@ -646,7 +646,7 @@ def add_breakdown_labels(
                 f"RM{withdrawn:,.0f}",
                 va="center",
                 ha="center",
-                fontsize=8,
+                fontsize=10,
                 fontweight="bold",
                 color=text_colour,
                 zorder=8,
@@ -682,7 +682,7 @@ def add_breakdown_labels(
                 va="center",
                 ha="left",
 
-                fontsize=8,
+                fontsize=10,
                 fontweight="bold",
                 color="black",
 
@@ -1198,7 +1198,7 @@ def create_chart_from_csv_bytes(
         # 2025 Actual Existing
         "previous_existing": (
             "#11b711",
-            "#36db36",
+            "#11b711",
         ),
 
         # 2025 Actual Withdrawn
