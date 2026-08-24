@@ -526,14 +526,14 @@ def add_breakdown_labels(
 
             # Push Existing Members slightly further right.
             existing_text_x = max(
-                existing * 0.68,
-                maximum * 0.26,
+                existing * 0.62,
+                maximum * 0.23,
             )
 
             # Do not move beyond the segment.
             existing_text_x = min(
                 existing_text_x,
-                existing * 0.90,
+                existing * 0.88,
             )
 
             ax.text(
