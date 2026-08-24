@@ -494,6 +494,8 @@ def add_breakdown_labels(
     maximum,
     text_colour="black",
     arrow_direction="down",
+    series_type="",
+    category_name="",
 ):
     """
     Show Existing / Withdrawn labels.
@@ -511,26 +513,37 @@ def add_breakdown_labels(
 
     if existing > 0:
 
-        existing_ratio = (
-            existing / maximum
-        )
+        existing_ratio = existing / maximum
 
-        # ----------------------------------------------------
-        # Keep inside when segment is >= 29%.
-        #
-        # This keeps the bottom blue bar's Existing label
-        # inside as well.
-        # ----------------------------------------------------
+        # Blue bars: easier to keep inside
+        inside_threshold = 0.27 if series_type == "current" else 0.29
 
-        if existing_ratio >= 0.29:
+        if existing_ratio >= inside_threshold:
 
-            # Push Existing Members slightly further right.
+            # Default inside position
             existing_text_x = max(
                 existing * 0.64,
                 maximum * 0.24,
             )
 
-            # Do not move beyond the segment.
+            # Push blue bar text a bit more inside/right
+            if series_type == "current":
+                existing_text_x = max(
+                    existing * 0.68,
+                    maximum * 0.26,
+                )
+
+            # Push middle green ("Revenue (OSM Only)") more right
+            if (
+                    series_type == "previous"
+                    and "osm only" in category_name.lower()
+            ):
+                existing_text_x = max(
+                    existing * 0.72,
+                    maximum * 0.28,
+                )
+
+            # Keep within segment
             existing_text_x = min(
                 existing_text_x,
                 existing * 0.88,
@@ -539,8 +552,7 @@ def add_breakdown_labels(
             ax.text(
                 existing_text_x,
                 y,
-                f"Existing Members\n"
-                f"RM{existing:,.0f}",
+                f"Existing Members\nRM{existing:,.0f}",
                 va="center",
                 ha="center",
                 fontsize=9,
@@ -549,100 +561,55 @@ def add_breakdown_labels(
                 zorder=8,
             )
 
-        # ----------------------------------------------------
-        # Existing too small -> arrow outside.
-        # ----------------------------------------------------
-
         else:
 
-            # Green bars use black text_colour.
-            is_green_bar = (
-                text_colour == "black"
-            )
+            is_green_bar = (text_colour == "black")
 
             if is_green_bar:
-
-                # Green Existing:
-                # slightly lower and slightly to the right.
                 vertical_offset = (
-                    -0.58
-                    if arrow_direction == "up"
-                    else 0.45
+                    -0.58 if arrow_direction == "up" else 0.45
                 )
-
                 x_offset = 0
-
             else:
-
                 vertical_offset = (
-                    -0.48
-                    if arrow_direction == "up"
-                    else 0.48
+                    -0.48 if arrow_direction == "up" else 0.48
                 )
-
-                x_offset = (
-                    maximum * 0.08
-                )
+                x_offset = maximum * 0.08
 
             ax.annotate(
-                f"Existing Members\n"
-                f"RM{existing:,.0f}",
-
-                # Arrow begins from the Existing segment.
-                xy=(
-                    existing * 0.65,
-                    y,
-                ),
-
-                # Text position.
+                f"Existing Members\nRM{existing:,.0f}",
+                xy=(existing * 0.65, y),
                 xytext=(
-                    min(
-                        existing
-                        + x_offset,
-                        maximum * 1.05,
-                    ),
+                    min(existing + x_offset, maximum * 1.05),
                     y + vertical_offset,
                 ),
-
                 va="center",
                 ha="left",
-
                 fontsize=9,
                 fontweight="bold",
                 color="black",
-
                 arrowprops={
-                    # Arrow points outward toward label.
                     "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
                 },
-
                 zorder=9,
             )
 
-    # ========================================================
-    # WITHDRAWN
-    # ========================================================
+        # ========================================================
+        # WITHDRAWN
+        # ========================================================
 
     if withdrawn > 0:
 
-        withdrawn_ratio = (
-            withdrawn / maximum
-        )
-
-        # ----------------------------------------------------
-        # Large Withdrawn section stays inside.
-        # ----------------------------------------------------
+        withdrawn_ratio = withdrawn / maximum
 
         if withdrawn_ratio >= 0.20:
 
             ax.text(
-                existing
-                + withdrawn / 2,
+                existing + withdrawn / 2,
                 y,
-                f"Withdrawn Members\n"
-                f"RM{withdrawn:,.0f}",
+                f"Withdrawn Members\nRM{withdrawn:,.0f}",
                 va="center",
                 ha="center",
                 fontsize=9,
@@ -651,106 +618,62 @@ def add_breakdown_labels(
                 zorder=8,
             )
 
-        # ----------------------------------------------------
-        # Small Withdrawn section goes outside.
-        # ----------------------------------------------------
-
         else:
 
-            is_green_bar = (
-                text_colour == "black"
-            )
+            is_green_bar = (text_colour == "black")
+            existing_ratio = existing / maximum
 
-            existing_ratio = (
-                existing / maximum
+            # defaults
+            withdrawn_vertical_offset = (
+                -0.62 if arrow_direction == "up" else 0.78
             )
+            withdrawn_x_text = min(
+                total + maximum * 0.10,
+                maximum * 1.12,
+            )
+            withdrawn_ha = "left"
 
             if is_green_bar:
 
-                # --------------------------------------------
-                # If Existing is ALSO outside,
-                # separate the two green labels more.
-                # This mainly affects the final green bar.
-                # --------------------------------------------
-
+                # If green Existing is ALSO outside:
+                # place Withdrawn label UNDER the green/light-green part
+                # so it won't overlap with the other arrow.
                 if existing_ratio < 0.29:
-
                     withdrawn_vertical_offset = (
-                        -1.00
-                        if arrow_direction == "up"
-                        else 1.20
+                        -0.90 if arrow_direction == "up" else 1.05
                     )
 
-                    withdrawn_x_extra = (
-                        maximum * 0.14
-                    )
-
-                # --------------------------------------------
-                # Existing is inside but Withdrawn is outside.
-                # Example: middle green bar.
-                # Keep label within the white gap.
-                # --------------------------------------------
+                    # Center text under the light-green segment
+                    withdrawn_x_text = existing + withdrawn / 2
+                    withdrawn_ha = "center"
 
                 else:
-
                     withdrawn_vertical_offset = (
-                        -0.62
-                        if arrow_direction == "up"
-                        else 0.78
+                        -0.62 if arrow_direction == "up" else 0.78
                     )
-
-                    withdrawn_x_extra = (
-                        maximum * 0.14
+                    withdrawn_x_text = min(
+                        total + maximum * 0.14,
+                        maximum * 1.12,
                     )
-
-            else:
-
-                withdrawn_vertical_offset = (
-                    -0.62
-                    if arrow_direction == "up"
-                    else 0.78
-                )
-
-                withdrawn_x_extra = (
-                    maximum * 0.10
-                )
+                    withdrawn_ha = "left"
 
             ax.annotate(
-                f"Withdrawn Members\n"
-                f"RM{withdrawn:,.0f}",
-
-                # Arrow starts from middle of light segment.
-                xy=(
-                    existing
-                    + withdrawn / 2,
-                    y,
-                ),
-
-                # Text sits outside/right.
+                f"Withdrawn Members\nRM{withdrawn:,.0f}",
+                xy=(existing + withdrawn / 2, y),
                 xytext=(
-                    min(
-                        total
-                        + withdrawn_x_extra,
-                        maximum * 1.12,
-                    ),
-                    y
-                    + withdrawn_vertical_offset,
+                    withdrawn_x_text,
+                    y + withdrawn_vertical_offset,
                 ),
-
                 va="center",
-                ha="left",
-
+                ha=withdrawn_ha,
                 fontsize=9,
                 fontweight="bold",
                 color="black",
-
                 arrowprops={
-                    # Arrowhead points outward.
                     "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
                 },
-
                 zorder=9,
             )
 
@@ -1390,6 +1313,8 @@ def create_chart_from_csv_bytes(
             maximum=maximum,
             text_colour="black",
             arrow_direction="up",
+            series_type="target",
+            category_name=category,
         )
 
         # ====================================================
@@ -1456,6 +1381,8 @@ def create_chart_from_csv_bytes(
             maximum=maximum,
             text_colour="black",
             arrow_direction="down",
+            series_type="current",
+            category_name=category,
         )
 
         # ====================================================
@@ -1522,6 +1449,8 @@ def create_chart_from_csv_bytes(
             maximum=maximum,
             text_colour="black",
             arrow_direction="down",
+            series_type="previous",
+            category_name=category,
         )
 
         # ====================================================
