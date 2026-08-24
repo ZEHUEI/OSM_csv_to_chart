@@ -532,7 +532,33 @@ def add_breakdown_labels(
                 maximum * 0.24,
             )
 
-            # Do not move beyond the segment.
+            category_lower = category_name.lower()
+
+            # ----------------------------------------------------
+            # Revenue (OSM Only) - GREEN
+            # Move Existing Members slightly RIGHT.
+            # ----------------------------------------------------
+            if (
+                    series_type == "previous"
+                    and "osm only" in category_lower
+            ):
+                existing_text_x = (
+                        existing * 0.73
+                )
+
+            # ----------------------------------------------------
+            # Revenue (YT Direct Acc Only) - BLUE
+            # Move Existing Members LEFT.
+            # ----------------------------------------------------
+            elif (
+                    series_type == "current"
+                    and "yt direct acc only" in category_lower
+            ):
+                existing_text_x = (
+                        existing * 0.55
+                )
+
+            # Do not move outside Existing segment.
             existing_text_x = min(
                 existing_text_x,
                 existing * 0.88,
@@ -572,7 +598,7 @@ def add_breakdown_labels(
                     else 0.45
                 )
 
-                x_offset = 0
+                x_offset = -(existing * 0.35)
 
             else:
 
@@ -607,7 +633,7 @@ def add_breakdown_labels(
                 ),
 
                 va="center",
-                ha="left",
+                ha="center",
 
                 fontsize=9,
                 fontweight="bold",
@@ -1392,6 +1418,8 @@ def create_chart_from_csv_bytes(
             maximum=maximum,
             text_colour="black",
             arrow_direction="up",
+            series_type="target",
+            category_name=category,
         )
 
         # ====================================================
@@ -1458,6 +1486,8 @@ def create_chart_from_csv_bytes(
             maximum=maximum,
             text_colour="black",
             arrow_direction="down",
+            series_type="current",
+            category_name=category,
         )
 
         # ====================================================
@@ -1524,6 +1554,8 @@ def create_chart_from_csv_bytes(
             maximum=maximum,
             text_colour="black",
             arrow_direction="down",
+            series_type="previous",
+            category_name=category,
         )
 
         # ====================================================
