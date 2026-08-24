@@ -611,7 +611,7 @@ def add_breakdown_labels(
             # ================================================
             elif series_type == "current":
 
-                arrow_x = existing * 0.65
+                arrow_x = existing * 0.80
                 text_x = min(
                     existing + maximum * 0.08,
                     maximum * 1.05,
@@ -714,13 +714,13 @@ def add_breakdown_labels(
                 if existing_ratio < 0.29:
 
                     withdrawn_vertical_offset = (
-                        -1.00
+                        -0.70
                         if arrow_direction == "up"
-                        else 1.20
+                        else 0.70
                     )
 
                     withdrawn_x_extra = (
-                        maximum * 0.10
+                        maximum * 0.07
                     )
 
                 # --------------------------------------------
