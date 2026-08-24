@@ -557,7 +557,7 @@ def add_breakdown_labels(
             existing / maximum
         )
 
-        if existing_ratio >= 0.40:
+        if existing_ratio >= 0.30:
 
             # Leave space on the left for the period header.
             existing_text_x = max(
@@ -633,10 +633,15 @@ def add_breakdown_labels(
     if withdrawn > 0:
 
         withdrawn_ratio = (
-            withdrawn / maximum
+                withdrawn / maximum
         )
 
-        if withdrawn_ratio >= 0.10:
+        # Only keep withdrawn text inside when the segment
+        # is comfortably large.
+        #
+        # 0.13 keeps the large Overall green segment inside,
+        # while smaller OSM / Direct Acc segments go outside.
+        if withdrawn_ratio >= 0.20:
 
             ax.text(
                 existing
@@ -654,29 +659,33 @@ def add_breakdown_labels(
 
         else:
 
-            vertical_offset = (
-                -0.48
+            # Put withdrawn further away from the bar
+            # so it does not overlap Existing.
+            withdrawn_vertical_offset = (
+                -0.78
                 if arrow_direction == "up"
-                else 0.48
+                else 0.78
             )
 
             ax.annotate(
                 f"Withdrawn Members\n"
                 f"RM{withdrawn:,.0f}",
 
+                # Arrow starts from middle of light segment
                 xy=(
                     existing
                     + withdrawn / 2,
                     y,
                 ),
 
+                # Text outside and to the right
                 xytext=(
                     min(
                         total
-                        + maximum * 0.07,
-                        maximum * 1.08,
+                        + maximum * 0.08,
+                        maximum * 1.10,
                     ),
-                    y + vertical_offset,
+                    y + withdrawn_vertical_offset,
                 ),
 
                 va="center",
@@ -687,7 +696,8 @@ def add_breakdown_labels(
                 color="black",
 
                 arrowprops={
-                    "arrowstyle": "->",
+                    # Arrowhead points OUT toward the label
+                    "arrowstyle": "<-",
                     "linewidth": 1.2,
                     "color": "#24667a",
                 },
