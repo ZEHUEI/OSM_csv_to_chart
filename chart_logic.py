@@ -595,7 +595,7 @@ def add_breakdown_labels(
                 vertical_offset = (
                     -0.58
                     if arrow_direction == "up"
-                    else 0.45
+                    else 0.65
                 )
 
                 x_offset = -(existing * 0.35)
