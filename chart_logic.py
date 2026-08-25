@@ -1422,18 +1422,18 @@ def create_chart_from_csv_bytes(
             colour="black",
         )
 
-        add_breakdown_labels(
-            ax=ax,
-            y=target_y,
-            total=target,
-            existing=target_existing,
-            withdrawn=target_withdrawn,
-            maximum=maximum,
-            text_colour="black",
-            arrow_direction="up",
-            series_type="target",
-            category_name=category,
-        )
+        # add_breakdown_labels(
+        #     ax=ax,
+        #     y=target_y,
+        #     total=target,
+        #     existing=target_existing,
+        #     withdrawn=target_withdrawn,
+        #     maximum=maximum,
+        #     text_colour="black",
+        #     arrow_direction="up",
+        #     series_type="target",
+        #     category_name=category,
+        # )
 
         # ====================================================
         # 2026 ACTUAL - BLUE
@@ -1490,18 +1490,18 @@ def create_chart_from_csv_bytes(
             colour="black",
         )
 
-        add_breakdown_labels(
-            ax=ax,
-            y=current_y,
-            total=current,
-            existing=current_existing,
-            withdrawn=current_withdrawn,
-            maximum=maximum,
-            text_colour="black",
-            arrow_direction="down",
-            series_type="current",
-            category_name=category,
-        )
+        # add_breakdown_labels(
+        #     ax=ax,
+        #     y=current_y,
+        #     total=current,
+        #     existing=current_existing,
+        #     withdrawn=current_withdrawn,
+        #     maximum=maximum,
+        #     text_colour="black",
+        #     arrow_direction="down",
+        #     series_type="current",
+        #     category_name=category,
+        # )
 
         # ====================================================
         # 2025 ACTUAL - GREEN
